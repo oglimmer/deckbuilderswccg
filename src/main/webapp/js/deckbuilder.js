@@ -263,7 +263,7 @@ Cards.prototype.reverseUpdateSelectionModel = function(selectedCards) {
 	var self = this;
 	$.each(selectedCards, function(ind, kvString) {
 		var kv = kvString.split("=");
-		var div = $("#card"+kv[0])
+		var div = $("#"+kv[0])
 		div.css("border","5px solid green");
 		div.css("borderRadius","5px");
 		$("#cardInfo"+kv[0]).html(kv[1]);
