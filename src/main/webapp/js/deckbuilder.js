@@ -404,6 +404,9 @@ User.prototype.register = function() {
                         			$('#mainLinkRegister').hide();                            			
 		                			$('#mainLinkLogout').show();                            			
                         			self.deckList = data.deckNames;
+                        			if(self.deckList == null) {
+    	                				self.deckList = []
+    	                			}
                         			self.loggedIn = true
 				        			if(cards.side==null||cards.side=='reset') {
 				       					$('#mainLinkLoad').show();
@@ -533,6 +536,9 @@ User.prototype.login = function() {
 	                			$('#mainLinkRegister').hide();                            			
 	                			$('#mainLinkLogout').show();                            			
 	                			self.deckList = data.deckNames;
+	                			if(self.deckList == null) {
+	                				self.deckList = []
+	                			}
 	                			//self.path = data.path;
 	                			self.loggedIn = true
 			        			if(cards.side==null||cards.side=='reset') {
@@ -587,6 +593,9 @@ $(function() {
         			$('#mainLinkRegister').hide();      
         			$('#mainLinkLogout').show();                      			        			
         			user.deckList = data.deckNames;
+        			if(user.deckList == null) {
+        				user.deckList = []
+        			}
         			//user.path = data.path;
         			user.loggedIn = true
         			if(cards.side==null||cards.side=='reset') {
