@@ -1,0 +1,8 @@
+target
+.settings
+.classpath
+.project
+src/main/webapp/images
+scripts/carddata.txt
+src/main/webapp/js/core_data.js
+src/main/webapp/META-INF/MANIFEST.MF
