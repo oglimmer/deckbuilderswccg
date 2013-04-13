@@ -232,6 +232,9 @@ if (params.type=='save') {
 		def newId = response.data.id
 		// update user
 		response = client.get(path: getDBName() + session.email, contentType: JSON, requestContentType:  JSON)
+		if(!response.data.containsKey("deckList_swccg")) {
+			response.data.deckList_swccg = []
+		}
 		response.data.deckList_swccg.push([id: newId, name: params.deckName, side: params.side, valid: params.valid])
 		response = client.put(path: getDBName() + session.email, contentType: JSON, requestContentType:  JSON, body: response.data)	
 		// return new created deck
