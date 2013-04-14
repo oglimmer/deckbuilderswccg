@@ -155,6 +155,8 @@ Cards.prototype.createSide = function (side) {
 		$('#mainLinkLight').show();
 		$('#mainLinkDark').show();
 		$('#main').empty();
+		$("#setsDiv").empty();
+		$("#categoryDiv").empty();
 		this.reset(true);
 		$('#statisticsDiv').empty();
 		if(user.loggedIn) {
