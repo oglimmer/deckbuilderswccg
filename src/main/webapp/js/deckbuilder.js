@@ -59,23 +59,63 @@ Cards.prototype.reset = function() {
 }
 
 Cards.prototype.resetStatistics = function() {
+	this.totalDeploy = 0;
+	this.numberDeploy = 0;
+	this.totalForfeit = 0;
+	this.numberForfeit = 0;
+	this.totalDestiny = 0;
+	this.categoryCounter = {};
 }
 
 Cards.prototype.calcStatistics = function() {
+	this.resetStatistics();	
+	var self = this;
+	$.each(this.selectedCards, function(cardId, number) {
+		var card = core_data.getCard(cardId);
+		var val = parseInt(card.Deploy);
+		if(!isNaN(val)) {
+			self.totalDeploy += val;
+			self.numberDeploy++;
+		}
+		val = parseInt(card.Forfeit);
+		if(!isNaN(val)) {
+			self.totalForfeit += val;
+			self.numberForfeit++;
+		}
+		val = parseInt(card.Destiny);
+		if(isNaN(val)) val=0;
+		self.totalDestiny += val;
+
+		if(typeof(self.categoryCounter[card.Category]) == 'undefined') {
+			self.categoryCounter[card.Category] = 0;
+		}
+		self.categoryCounter[card.Category] += parseInt(number);
+	});	
 }
 
 Cards.prototype.updateUi = function() {
-	$('#statisticsDiv').html("Cards selected: "+this.getTotalNumberOfSelectedCards()+"<br/>");
+	var totalNumberCard = this.getTotalNumberOfSelectedCards();
+	var categoryStr = "";
+	$.each(this.categoryCounter, function(key, value) {
+		if(categoryStr.length>0) categoryStr += ", ";
+		categoryStr += key.substring(0,2)+"="+value+" ("+Math.round(100*value/totalNumberCard)+"%)";
+	});
+	$('#statisticsDiv').html("Cards selected: "+this.getTotalNumberOfSelectedCards()+"<br/>"+
+		"Deploy: "+this.totalDeploy+" (ø:"+(this.totalDeploy/this.numberDeploy).toFixed(2)+")<br/>"+
+		"Forfeit: "+this.totalForfeit+" (ø:"+(this.totalForfeit/this.numberForfeit).toFixed(2)+")<br/>"+
+		"Destiny: "+this.totalDestiny+" (ø:"+(this.totalDestiny/totalNumberCard).toFixed(2)+")<br/>"+
+		"Cat.: "+categoryStr+"<br/>");
+
 	var allselectedBlocks = "";
 	$.each(this.selectedCards, function(cardId,number) {		
 		if(allselectedBlocks != "") {
-			allselectedBlocks += "<br/>"
+			allselectedBlocks += "<br/>";
 		}
-		var card = core_data.getCard(cardId)
+		var card = core_data.getCard(cardId);
 		allselectedBlocks += "["+card.Set+"] "+ card.Name +" ("+number+"x)";
-	})
+	});
 	$('#selectedCardsDiv').html(allselectedBlocks);
-}
+};
 
 Cards.prototype.selectionChanged = function() {
 	this.changeShow()
@@ -146,7 +186,8 @@ Cards.prototype.createSide = function (side) {
 			}
 			var staticDiv = $('<div />');
 			staticDiv.css("display","inline-block");
-			staticDiv.css("margin","5px");
+			staticDiv.css("margin","6px");
+			staticDiv.css("borderRadius","12px");
 			staticDiv.attr('id',value.id);
 			mainDiv.append(staticDiv);
 			
@@ -183,13 +224,15 @@ Cards.prototype.createSide = function (side) {
 					}
 				}
 				if(typeof(self.selectedCards[value.id])!=="undefined") {
-					staticDiv.css("border","5px solid green");
-					staticDiv.css("borderRadius","5px");
+					staticDiv.css("margin","1px");
+					staticDiv.css("border","5px solid yellow");
 					counterSpan.html(self.selectedCards[value.id]);
 				} else {
+					staticDiv.css("margin","6px");
 					staticDiv.css("border","");
 					counterSpan.html("");
 				}
+				self.calcStatistics();
 				self.updateUi();
 			});
 		});
@@ -264,8 +307,8 @@ Cards.prototype.reverseUpdateSelectionModel = function(selectedCards) {
 	$.each(selectedCards, function(ind, kvString) {
 		var kv = kvString.split("=");
 		var div = $("#"+kv[0])
-		div.css("border","5px solid green");
-		div.css("borderRadius","5px");
+		div.css("border","5px solid yellow");
+		div.css("margin","1px");
 		$("#cardInfo"+kv[0]).html(kv[1]);
 		self.selectedCards[kv[0]] = kv[1];
 	});
