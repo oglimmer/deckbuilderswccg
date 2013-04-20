@@ -64,7 +64,8 @@
 			</div>
 		</div>
 	</div>
-	<div id="main"></div>	
+	<div id="main"></div>
+	<div id="waitDialog"><div id="waitDialogText"></div></div>
 </body>
 </html>
 

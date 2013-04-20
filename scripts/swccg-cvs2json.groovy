@@ -41,28 +41,40 @@ args.each { file ->
 		fields.eachWithIndex { obj, index ->
 			if(colDef[index]=='Category') {
 				def subFields = obj.split(" -- ")
+				if(subFields[0].startsWith("Jedi Test")) {
+					subFields[0] = "Jedi Test";
+				}
 				properties[colDef[index]] = removeNonAscii(subFields[0])
 				if(subFields.length>1) {
 					properties["Subcategory"] = removeNonAscii(subFields[1])
 				}
+			} else if(colDef[index]=='Set') {
+				properties[colDef[index]] = removeNonAscii(obj)
 			} else if(colDef[index]=='ImageFile') {
 				properties[colDef[index]] = obj.substring(obj.indexOf("-")+1)+".gif"
 			} else {
 				properties[colDef[index]] = obj
 			}
 		}
-		//if(properties.Side == 'Light'||properties.Side == 'Dark') {
-		if(properties.Set == 'Premiere' || properties.Set == 'ANewHope' || properties.Set == 'Hoth' ) {
-			//ID
-			properties.id = removeNonAscii(properties.Name+properties.Set+properties.Side)
-			//FILENAME			
+		
+//		if((properties.Side == 'Light'||properties.Side == 'Dark') && properties.Set.startsWith("Premiere")) {
+		if((properties.Side == 'Light'||properties.Side == 'Dark') && !properties.Set.startsWith("Virtual")) {
+			//FILENAME
 			properties.ImageFile = properties.Set +"-"+ properties.Side +"/large/"+ properties.ImageFile
-			//allSets
-			allSets[properties.Set] = null;
-			//allCategories
-			allCategories[properties.Category] = null;
-			//----
-			rootData[properties.Side].add(properties);
+					def imageFile = new File("/Users/oli/dev/java/deckbuilderswccg/src/main/webapp/images/"+properties.ImageFile)
+			if(imageFile.exists()){			
+				//if(properties.Set == 'Premiere' || properties.Set == 'ANewHope' || properties.Set == 'Hoth' ) {
+				//ID
+				properties.id = removeNonAscii(properties.Name+properties.Set+properties.Side)
+				//allSets
+				allSets[properties.Set] = null;
+				//allCategories
+				allCategories[properties.Category] = null;
+				//----
+				rootData[properties.Side].add(properties);
+			} else {
+				System.err.println("Missing image for "+properties.ImageFile);
+			}
 		}
 	}	
 	

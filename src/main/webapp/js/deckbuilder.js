@@ -1,15 +1,61 @@
 core_data.getCard = function(cardId) {
 	if(typeof(this.idCardCache) === 'undefined') {
-		this.idCardCache = {}
+		this.idCardCache = {};
 		var icc = this.idCardCache;
 		$.each([this.main.Dark,this.main.Light], function() {
 			$.each(this, function() {
+				this.nodeRef = $("#"+this.id);
 				icc[this.id] = this;
 			});
 		});
 	}
 	return this.idCardCache[cardId];
-}
+};
+
+core_data.getAllCardNodes = function() {
+	if(typeof(this.idCardsAllCache) === 'undefined') {
+		this.idCardsAllCache = [];
+		var icc = this.idCardsAllCache;
+		$.each([this.main.Dark,this.main.Light], function() {
+			$.each(this, function() {
+				icc.push(this.id);
+			});
+		});
+	}
+	return this.idCardsAllCache;
+};
+
+core_data.getCardsBySet = function(set) {
+	if(typeof(this.idCardsSetCache) === 'undefined') {
+		this.idCardsSetCache = {};
+		var icc = this.idCardsSetCache;
+		$.each([this.main.Dark,this.main.Light], function() {
+			$.each(this, function() {
+				if(typeof(icc[this.Set])==='undefined') {
+					icc[this.Set] = [];
+				}
+				icc[this.Set].push(this.id);
+			});
+		});
+	}
+	return this.idCardsSetCache[set];
+};
+
+core_data.getCardsByCategory = function(cat) {
+	if(typeof(this.idCardsCategoryCache) === 'undefined') {
+		this.idCardsCategoryCache = {};
+		var icc = this.idCardsCategoryCache;
+		$.each([this.main.Dark,this.main.Light], function() {
+			$.each(this, function() {
+				if(typeof(icc[this.Category])==='undefined') {
+					icc[this.Category] = [];
+				}
+				icc[this.Category].push(this.id);
+			});
+		});
+	}
+	return this.idCardsCategoryCache[cat];
+};
 
 String.prototype.toObject = function(rowSep, colSep) {
 	var retObj = {};
@@ -123,26 +169,59 @@ Cards.prototype.selectionChanged = function() {
 	this.updateUi();
 }
 
-Cards.prototype.changeShow = function () {
+Cards.prototype.changeShow = function (changedElement) {
+	if((/_ALL$/).test(changedElement)) {
+		var divName,namePrefix,type;
+		if(changedElement=="cat_ALL") {
+			divName="categoryDiv";
+			namePrefix="cat";
+			type="categories";
+		} else if(changedElement=="set_ALL") {
+			divName="setsDiv";
+			namePrefix="set";
+			type="sets";
+		}
+		var toSet = $("#"+divName+" input[name="+changedElement+"]").is(":checked");
+		$.each(core_data[type], function(ind, cat) {
+			if(cat!="ALL") {
+				$("#"+divName+" input[name="+namePrefix+"_"+cat+"]").prop("checked",toSet);
+			}
+		});			
+		changedElement=null;
+	}
 	var self = this
-	var showSelected = $("#cardsDiv input[type=radio]:checked").val()	
+	var showSelected = $("#cardsDiv input[type=radio]:checked").val();	
 	var categoriesSelected = {};
-	$.each(core_data.categories, function(ind, set) {
-		categoriesSelected[set] = $("#categoryDiv input[name=set_"+set+"]:checked").val()
+	$.each(core_data.categories, function(ind, cat) {
+		if(cat!="ALL") {
+			categoriesSelected[cat] = $("#categoryDiv input[name=cat_"+cat+"]").is(":checked");			
+		}
 	});
 	var setsSelected = {};
 	$.each(core_data.sets, function(ind, set) {
-		setsSelected[set] = $("#setsDiv input[name=set_"+set+"]:checked").val()
+		if(set!="ALL") {
+			setsSelected[set] = $("#setsDiv input[name=set_"+set+"]").is(":checked");
+		}
 	});
-	$("#main > div > div").each(function() {
-		var card = core_data.getCard(this.id);
+	
+	var cardsToProcess;
+	if(typeof(changedElement)==='undefined' || changedElement == null) {
+		cardsToProcess = core_data.getAllCardNodes();
+	} else if ((/^set_/).test(changedElement)) {
+		cardsToProcess = core_data.getCardsBySet(changedElement.substring(4));
+	} else if ((/^cat_/).test(changedElement)) {
+		cardsToProcess = core_data.getCardsByCategory(changedElement.substring(4));
+	}
+	
+	$.each(cardsToProcess, function(ind, id) {
+		var card = core_data.getCard(id);
 		var showSelection = showSelected == 'all' || 
-			showSelected == 'sel' && typeof(self.selectedCards[this.id]) !== 'undefined' || 
-			showSelected == 'not' && typeof(self.selectedCards[this.id]) === 'undefined';
+			showSelected == 'sel' && typeof(self.selectedCards[card.id]) !== 'undefined' || 
+			showSelected == 'not' && typeof(self.selectedCards[card.id]) === 'undefined';
 		if(categoriesSelected[card.Category] && setsSelected[card.Set] && showSelection) {
-			$(this).show();
+			card.nodeRef.show();
 		} else {
-			$(this).hide();
+			card.nodeRef.hide();
 		};
 	});
 }
@@ -165,6 +244,8 @@ Cards.prototype.createSide = function (side) {
 			$('#mainLinkSaveAs').hide();
 		}
 	} else {
+		$("#waitDialog").show();
+		
 		$('#mainLinkLight').hide();
 		$('#mainLinkDark').hide();
 		$('#mainLinkReset').show();
@@ -180,6 +261,8 @@ Cards.prototype.createSide = function (side) {
 		// create all Card-Boxs
 		var mainDiv = $("<div />");
 		var lastCategory = null;
+		var totalCardsCreated = 0;
+		var totalCardsLoaded = 0;
 		$.each(core_data.main[side], function(index, value) {
 			if(lastCategory != value.Category) {
 				lastCategory = value.Category;
@@ -197,8 +280,17 @@ Cards.prototype.createSide = function (side) {
 			innerDiv.css("position","relative");
 			staticDiv.append(innerDiv);		
 			
-			var img = $("<img />").attr('src',user.path+'/'+value.ImageFile);
+			var img = $("<img />");
+			img.load(function() {
+				totalCardsLoaded++;
+				$("#waitDialogText").html("Loading images ... "+totalCardsLoaded+" from "+totalCardsCreated);
+				if(totalCardsCreated<=totalCardsLoaded) {
+					$("#waitDialog").hide();
+				}
+			});
+			img.attr('src',user.path+'/'+value.ImageFile);
 			innerDiv.append(img);
+			totalCardsCreated++;
 			
 			var counterSpan = $("<span />");
 			counterSpan.attr('id','cardInfo'+value.id);
@@ -214,7 +306,7 @@ Cards.prototype.createSide = function (side) {
 			innerDiv.append(counterSpan);
 			
 			innerDiv.click(function(e){
-				if(e.button==0) {
+				if(e.button==0 && !e.shiftKey) {
 					if(typeof(self.selectedCards[value.id]) === 'undefined') {
 						self.selectedCards[value.id]=0;
 					}
@@ -236,10 +328,20 @@ Cards.prototype.createSide = function (side) {
 				}
 				self.calcStatistics();
 				self.updateUi();
-			});
+			});				
 		});
 		$('#main').append(mainDiv);
 		
+		var div = $("<input />");
+		div.attr("type", "checkbox");
+		div.attr("name", "set_ALL");
+		div.attr("value", "yes");
+		div.attr("checked", "checked");
+		div.click(function(e) {
+			cards.changeShow("set_ALL");
+		});
+		$("#setsDiv").append("ALL");
+		$("#setsDiv").append(div);
 		$.each(core_data.sets, function(index, value) {
 			var div = $("<input />");
 			div.attr("type", "checkbox");
@@ -247,20 +349,30 @@ Cards.prototype.createSide = function (side) {
 			div.attr("value", "yes");
 			div.attr("checked", "checked");
 			div.click(function(e) {
-				cards.changeShow();
+				cards.changeShow("set_"+value);
 			});
 			$("#setsDiv").append(value);
 			$("#setsDiv").append(div);
 		});
 				
+		var div = $("<input />");
+		div.attr("type", "checkbox");
+		div.attr("name", "cat_ALL");
+		div.attr("value", "yes");
+		div.attr("checked", "checked");
+		div.click(function(e) {
+			cards.changeShow("cat_ALL");
+		});
+		$("#categoryDiv").append("ALL");
+		$("#categoryDiv").append(div);
 		$.each(core_data.categories, function(index, value) {
 			var div = $("<input />");
 			div.attr("type", "checkbox");
-			div.attr("name", "set_"+value);
+			div.attr("name", "cat_"+value);
 			div.attr("value", "yes");
 			div.attr("checked", "checked");
 			div.click(function(e) {
-				cards.changeShow();
+				cards.changeShow("cat_"+value);
 			});
 			$("#categoryDiv").append(value.substring(0,2));
 			$("#categoryDiv").append(div);
