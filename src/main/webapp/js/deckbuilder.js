@@ -101,6 +101,10 @@ Cards.prototype.reset = function() {
 	this.currentDeckId = "";
 	this.selectedCards = {};
 	this.resetStatistics();
+	delete core_data.idCardCache;
+	delete core_data.idCardsAllCache;
+	delete core_data.idCardsSetCache;
+	delete core_data.idCardsCategoryCache;
 	this.updateUi();
 }
 
