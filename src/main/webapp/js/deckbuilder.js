@@ -148,7 +148,7 @@ Cards.prototype.updateUi = function() {
 	var categoryStr = "";
 	$.each(this.categoryCounter, function(key, value) {
 		if(categoryStr.length>0) categoryStr += ", ";
-		categoryStr += key.substring(0,2)+"="+value+" ("+Math.round(100*value/totalNumberCard)+"%)";
+		categoryStr += key.substring(0,3)+"="+value+" ("+Math.round(100*value/totalNumberCard)+"%)";
 	});
 	$('#statisticsDiv').html("Cards selected: "+this.getTotalNumberOfSelectedCards()+"<br/>"+
 		"Deploy: "+this.totalDeploy+" (ø:"+(this.totalDeploy/this.numberDeploy).toFixed(2)+")<br/>"+
@@ -232,7 +232,6 @@ Cards.prototype.changeShow = function (changedElement) {
 
 Cards.prototype.createSide = function (side) {
 	this.side = side;
-	var self = this;
 	if(side=='reset') {
 		$('#mainLinkReset').hide();
 		$('#mainLinkLight').show();
@@ -248,141 +247,145 @@ Cards.prototype.createSide = function (side) {
 			$('#mainLinkSaveAs').hide();
 		}
 	} else {
+		$("#waitDialogText").html("Loading images ... initializing");
 		$("#waitDialog").show();
-		
-		$('#mainLinkLight').hide();
-		$('#mainLinkDark').hide();
-		$('#mainLinkReset').show();
-		$('#main').empty()
-		this.reset(false);
-		this.updateUi();
-		if(user.loggedIn) {
-			$('#mainLinkLoad').hide();
-			$('#mainLinkSave').show();
-			$('#mainLinkSaveAs').show();
-		}
-
-		// create all Card-Boxs
-		var mainDiv = $("<div />");
-		var lastCategory = null;
-		var totalCardsCreated = 0;
-		var totalCardsLoaded = 0;
-		$.each(core_data.main[side], function(index, value) {
-			if(lastCategory != value.Category) {
-				lastCategory = value.Category;
-				$('#main').append(mainDiv);
-				mainDiv = $("<div />");
-			}
-			var staticDiv = $('<div />');
-			staticDiv.css("display","inline-block");
-			staticDiv.css("margin","6px");
-			staticDiv.css("borderRadius","12px");
-			staticDiv.attr('id',value.id);
-			mainDiv.append(staticDiv);
-			
-			var innerDiv = $('<div />');
-			innerDiv.css("position","relative");
-			staticDiv.append(innerDiv);		
-			
-			var img = $("<img />");
-			img.load(function() {
-				totalCardsLoaded++;
-				$("#waitDialogText").html("Loading images ... "+totalCardsLoaded+" from "+totalCardsCreated);
-				if(totalCardsCreated<=totalCardsLoaded) {
-					$("#waitDialog").hide();
-				}
-			});
-			img.attr('src',user.path+'/'+value.ImageFile);
-			innerDiv.append(img);
-			totalCardsCreated++;
-			
-			var counterSpan = $("<span />");
-			counterSpan.attr('id','cardInfo'+value.id);
-			counterSpan.css("position", "absolute");
-			counterSpan.css("top", "5px");
-			counterSpan.css("left", "5px");
-			counterSpan.css("fontWeight", "bolder");
-			counterSpan.css("fontSize", "20px");
-			counterSpan.css("fontFamily", "Arial");
-			counterSpan.css("textShadow", "0 1px 0 #E2007A,0 -1px 0 #E2007A,1px 0 0 #E2007A,-1px 0 0 #E2007A");
-			counterSpan.css("color", "#000");
-			
-			innerDiv.append(counterSpan);
-			
-			innerDiv.click(function(e){
-				if(e.button==0 && !e.shiftKey) {
-					if(typeof(self.selectedCards[value.id]) === 'undefined') {
-						self.selectedCards[value.id]=0;
-					}
-					self.selectedCards[value.id]++;
-				} else if(typeof(self.selectedCards[value.id])!=="undefined") {
-					self.selectedCards[value.id]--;
-					if(self.selectedCards[value.id]<=0) {
-						delete self.selectedCards[value.id];
-					}
-				}
-				if(typeof(self.selectedCards[value.id])!=="undefined") {
-					staticDiv.css("margin","1px");
-					staticDiv.css("border","5px solid yellow");
-					counterSpan.html(self.selectedCards[value.id]);
-				} else {
-					staticDiv.css("margin","6px");
-					staticDiv.css("border","");
-					counterSpan.html("");
-				}
-				self.calcStatistics();
-				self.updateUi();
-			});				
-		});
-		$('#main').append(mainDiv);
-		
-		var div = $("<input />");
-		div.attr("type", "checkbox");
-		div.attr("name", "set_ALL");
-		div.attr("value", "yes");
-		div.attr("checked", "checked");
-		div.click(function(e) {
-			cards.changeShow("set_ALL");
-		});
-		$("#setsDiv").append("ALL");
-		$("#setsDiv").append(div);
-		$.each(core_data.sets, function(index, value) {
-			var div = $("<input />");
-			div.attr("type", "checkbox");
-			div.attr("name", "set_"+value);
-			div.attr("value", "yes");
-			div.attr("checked", "checked");
-			div.click(function(e) {
-				cards.changeShow("set_"+value);
-			});
-			$("#setsDiv").append(value);
-			$("#setsDiv").append(div);
-		});
-				
-		var div = $("<input />");
-		div.attr("type", "checkbox");
-		div.attr("name", "cat_ALL");
-		div.attr("value", "yes");
-		div.attr("checked", "checked");
-		div.click(function(e) {
-			cards.changeShow("cat_ALL");
-		});
-		$("#categoryDiv").append("ALL");
-		$("#categoryDiv").append(div);
-		$.each(core_data.categories, function(index, value) {
-			var div = $("<input />");
-			div.attr("type", "checkbox");
-			div.attr("name", "cat_"+value);
-			div.attr("value", "yes");
-			div.attr("checked", "checked");
-			div.click(function(e) {
-				cards.changeShow("cat_"+value);
-			});
-			$("#categoryDiv").append(value.substring(0,2));
-			$("#categoryDiv").append(div);
-		});
-		
+		setTimeout("cards.createCardNodes()", 25);
 	}
+};
+
+Cards.prototype.createCardNodes = function() {
+	var self = this;
+	$('#mainLinkLight').hide();
+	$('#mainLinkDark').hide();
+	$('#mainLinkReset').show();
+	$('#main').empty()
+	this.reset(false);
+	this.updateUi();
+	if(user.loggedIn) {
+		$('#mainLinkLoad').hide();
+		$('#mainLinkSave').show();
+		$('#mainLinkSaveAs').show();
+	}
+
+	// create all Card-Boxs
+	var mainDiv = $("<div />");
+	var lastCategory = null;
+	var totalCardsCreated = 0;
+	var totalCardsLoaded = 0;
+	$.each(core_data.main[this.side], function(index, value) {
+		if(lastCategory != value.Category) {
+			lastCategory = value.Category;
+			$('#main').append(mainDiv);
+			mainDiv = $("<div />");
+		}
+		var staticDiv = $('<div />');
+		staticDiv.css("display","inline-block");
+		staticDiv.css("margin","6px");
+		staticDiv.css("borderRadius","12px");
+		staticDiv.attr('id',value.id);
+		mainDiv.append(staticDiv);
+		
+		var innerDiv = $('<div />');
+		innerDiv.css("position","relative");
+		staticDiv.append(innerDiv);		
+		
+		var img = $("<img />");
+		img.load(function() {
+			totalCardsLoaded++;
+			$("#waitDialogText").html("Loading images ... "+totalCardsLoaded+" from "+totalCardsCreated);
+			if(totalCardsCreated<=totalCardsLoaded) {
+				$("#waitDialog").hide();
+			}
+		});
+		img.attr('src',user.path+'/'+value.ImageFile);
+		innerDiv.append(img);
+		totalCardsCreated++;
+		
+		var counterSpan = $("<span />");
+		counterSpan.attr('id','cardInfo'+value.id);
+		counterSpan.css("position", "absolute");
+		counterSpan.css("top", "5px");
+		counterSpan.css("left", "5px");
+		counterSpan.css("fontWeight", "bolder");
+		counterSpan.css("fontSize", "20px");
+		counterSpan.css("fontFamily", "Arial");
+		counterSpan.css("textShadow", "0 1px 0 #E2007A,0 -1px 0 #E2007A,1px 0 0 #E2007A,-1px 0 0 #E2007A");
+		counterSpan.css("color", "#000");
+		
+		innerDiv.append(counterSpan);
+		
+		innerDiv.click(function(e){
+			if(e.button==0 && !e.shiftKey) {
+				if(typeof(self.selectedCards[value.id]) === 'undefined') {
+					self.selectedCards[value.id]=0;
+				}
+				self.selectedCards[value.id]++;
+			} else if(typeof(self.selectedCards[value.id])!=="undefined") {
+				self.selectedCards[value.id]--;
+				if(self.selectedCards[value.id]<=0) {
+					delete self.selectedCards[value.id];
+				}
+			}
+			if(typeof(self.selectedCards[value.id])!=="undefined") {
+				staticDiv.css("margin","1px");
+				staticDiv.css("border","5px solid yellow");
+				counterSpan.html(self.selectedCards[value.id]);
+			} else {
+				staticDiv.css("margin","6px");
+				staticDiv.css("border","");
+				counterSpan.html("");
+			}
+			self.calcStatistics();
+			self.updateUi();
+		});				
+	});
+	$('#main').append(mainDiv);
+	
+	var div = $("<input />");
+	div.attr("type", "checkbox");
+	div.attr("name", "set_ALL");
+	div.attr("value", "yes");
+	div.attr("checked", "checked");
+	div.click(function(e) {
+		cards.changeShow("set_ALL");
+	});
+	$("#setsDiv").append("ALL");
+	$("#setsDiv").append(div);
+	$.each(core_data.sets, function(index, value) {
+		var div = $("<input />");
+		div.attr("type", "checkbox");
+		div.attr("name", "set_"+value);
+		div.attr("value", "yes");
+		div.attr("checked", "checked");
+		div.click(function(e) {
+			cards.changeShow("set_"+value);
+		});
+		$("#setsDiv").append(value);
+		$("#setsDiv").append(div);
+	});
+			
+	var div = $("<input />");
+	div.attr("type", "checkbox");
+	div.attr("name", "cat_ALL");
+	div.attr("value", "yes");
+	div.attr("checked", "checked");
+	div.click(function(e) {
+		cards.changeShow("cat_ALL");
+	});
+	$("#categoryDiv").append("ALL");
+	$("#categoryDiv").append(div);
+	$.each(core_data.categories, function(index, value) {
+		var div = $("<input />");
+		div.attr("type", "checkbox");
+		div.attr("name", "cat_"+value);
+		div.attr("value", "yes");
+		div.attr("checked", "checked");
+		div.click(function(e) {
+			cards.changeShow("cat_"+value);
+		});
+		$("#categoryDiv").append(value.substring(0,3));
+		$("#categoryDiv").append(div);
+	});	
 };
 
 Cards.prototype.getSelectedDecksAsString = function () {
