@@ -58,8 +58,11 @@
 				<div id="selectedCardsDiv"></div>
 			</div>
 			<div id="helpDiv">
-				<div>Statistics:</div>
 				<ul>
+					<li>Use Chrome or Firefox since they cache images properly.</li>
+					<li>To put a card into a deck do a left-click</li>
+					<li>To remove a card from a deck do a middle-click or a shift-left-click</li>
+					<li>A deck must contain exactly 60 cards to be valid</li>
 				</ul>
 			</div>
 		</div>
