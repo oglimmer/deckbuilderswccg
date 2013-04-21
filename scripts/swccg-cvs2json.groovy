@@ -61,7 +61,7 @@ args.each { file ->
 		if((properties.Side == 'Light'||properties.Side == 'Dark') && !properties.Set.startsWith("Virtual")) {
 			//FILENAME
 			properties.ImageFile = properties.Set +"-"+ properties.Side +"/large/"+ properties.ImageFile
-					def imageFile = new File("/Users/oli/dev/java/deckbuilderswccg/src/main/webapp/images/"+properties.ImageFile)
+			def imageFile = new File("/Users/oli/dev/java/deckbuilderswccg/src/main/webapp/images/"+properties.ImageFile)
 			if(imageFile.exists()){			
 				//if(properties.Set == 'Premiere' || properties.Set == 'ANewHope' || properties.Set == 'Hoth' ) {
 				//ID

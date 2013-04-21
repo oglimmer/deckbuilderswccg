@@ -249,7 +249,8 @@ Cards.prototype.createSide = function (side) {
 	} else {
 		$("#waitDialogText").html("Loading images ... initializing");
 		$("#waitDialog").show();
-		setTimeout("cards.createCardNodes()", 25);
+		// yield for 150ms to let the UI thread update
+		setTimeout("cards.createCardNodes()", 150);
 	}
 };
 
