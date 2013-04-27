@@ -20,6 +20,8 @@ def allSets = [:]
 
 def allCategories = [:]
 
+def allVirtualCards = ["Dark":[:], "Light":[:]]
+
 args.each { file ->
 		
 //	mogrify -filter LanczosSharp -resize 85x85 -format jpg -quality 89 *.jpg //small
@@ -56,29 +58,93 @@ args.each { file ->
 				properties[colDef[index]] = obj
 			}
 		}
-		
-//		if((properties.Side == 'Light'||properties.Side == 'Dark') && properties.Set.startsWith("Premiere")) {
-		if((properties.Side == 'Light'||properties.Side == 'Dark') && !properties.Set.startsWith("Virtual")) {
+				
+		if((properties.Side == 'Light'||properties.Side == 'Dark') ) {
 			//FILENAME
 			properties.ImageFile = properties.Set +"-"+ properties.Side +"/large/"+ properties.ImageFile
 			def imageFile = new File("/Users/oli/dev/java/deckbuilderswccg/src/main/webapp/images/"+properties.ImageFile)
-			if(imageFile.exists()){			
-				//if(properties.Set == 'Premiere' || properties.Set == 'ANewHope' || properties.Set == 'Hoth' ) {
+			if(imageFile.exists()){
 				//ID
-				properties.id = removeNonAscii(properties.Name+properties.Set+properties.Side)
+				properties.id = removeNonAscii(properties.Name)+"_"+removeNonAscii(properties.Set)+"_"+removeNonAscii(properties.Side)
 				//allSets
 				allSets[properties.Set] = null;
 				//allCategories
 				allCategories[properties.Category] = null;
-				//----
+				//----												
 				rootData[properties.Side].add(properties);
-			} else {
-				System.err.println("Missing image for "+properties.ImageFile);
+			} else if(!properties.ImageFile.startsWith("Virtual")) {
+				System.out.println("Missing image for "+imageFile);				
+			}
+			
+			// Virtual Sets doesn't match from card files to carddata.txt. So we remember all unique carddata
+			if(properties.Set.startsWith("Virtual")) {
+				def key = properties.ImageFile.substring(properties.ImageFile.lastIndexOf("/")+1, properties.ImageFile.lastIndexOf("."))
+				if(allVirtualCards[properties.Side].containsKey(key)) {
+					allVirtualCards[properties.Side][key] = "DUPLICATE"
+				} else {
+					allVirtualCards[properties.Side][key] = properties
+				}
 			}
 		}
 	}	
 	
 }
+
+// We need to find all virtual cards which have a not unique file name
+def allVirtualCardsDup = ["Dark":[:], "Light":[:]]
+
+def dir = new File("/Users/oli/dev/java/deckbuilderswccg/src/main/webapp/images/")
+dir.traverse {
+	if(it.isFile() && it.path.contains("Virtual")){
+		def path = it.path
+		def properties = [:]
+		properties.Name = it.name.substring(0, it.name.indexOf("."))
+		path = path.substring(0, path.lastIndexOf("/"))
+		path = path.substring(0, path.lastIndexOf("/"))
+		path = path.substring(path.lastIndexOf("/")+1)
+		properties.Side = path.substring(path.indexOf("-")+1)
+		
+		if(allVirtualCardsDup[properties.Side].containsKey(properties.Name)) {
+			allVirtualCardsDup[properties.Side][properties.Name] = "DUPLICATE"
+		} else {
+			allVirtualCardsDup[properties.Side][properties.Name] = "found"
+		}
+	}
+}
+
+dir = new File("/Users/oli/dev/java/deckbuilderswccg/src/main/webapp/images/")
+dir.traverse {
+	if(it.isFile() && it.path.contains("Virtual")){
+		def path = it.path
+		
+		def properties = [:]
+		properties.Name = it.name.substring(0, it.name.indexOf("."))
+		path = path.substring(0, path.lastIndexOf("/"))
+		path = path.substring(0, path.lastIndexOf("/"))
+		path = path.substring(path.lastIndexOf("/")+1)
+		properties.Side = path.substring(path.indexOf("-")+1)
+		
+		def propFromVirtual = allVirtualCards[properties.Side][properties.Name]
+		if(propFromVirtual != null && propFromVirtual != "DUPLICATE" && allVirtualCardsDup[properties.Side][properties.Name] != "DUPLICATE") {
+			// we can only use the data from carddata.txt if the card's file name is absolutely unique
+			properties = propFromVirtual
+		} else {
+			properties.Category = "Undefined"
+			properties.Subcategory = ""
+		}
+		properties.Set = path.substring(0, path.indexOf("-"))
+		properties.ImageFile = properties.Set +"-"+ properties.Side +"/large/"+ it.name		
+		properties.id = removeNonAscii(properties.Name)+"_"+removeNonAscii(properties.Set)+"_"+removeNonAscii(properties.Side)
+
+		//allSets
+		allSets[properties.Set] = null;
+		//allCategories
+		allCategories[properties.Category] = null;
+		
+		rootData[properties.Side].add(properties);		
+	}
+}
+
 
 // do some sorting
 for(def side in rootData) {
