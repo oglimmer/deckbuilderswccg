@@ -61,7 +61,7 @@ args.each { file ->
 				
 		if((properties.Side == 'Light'||properties.Side == 'Dark') ) {
 			//FILENAME
-			properties.ImageFile = properties.Set +"-"+ properties.Side +"/large/"+ properties.ImageFile
+			properties.ImageFile = properties.Set +"-"+ properties.Side +"/"+ properties.ImageFile
 			def imageFile = new File("/Users/oli/dev/java/deckbuilderswccg/src/main/webapp/images/"+properties.ImageFile)
 			if(imageFile.exists()){
 				//ID
@@ -100,7 +100,6 @@ dir.traverse {
 		def properties = [:]
 		properties.Name = it.name.substring(0, it.name.indexOf("."))
 		path = path.substring(0, path.lastIndexOf("/"))
-		path = path.substring(0, path.lastIndexOf("/"))
 		path = path.substring(path.lastIndexOf("/")+1)
 		properties.Side = path.substring(path.indexOf("-")+1)
 		
@@ -120,7 +119,6 @@ dir.traverse {
 		def properties = [:]
 		properties.Name = it.name.substring(0, it.name.indexOf("."))
 		path = path.substring(0, path.lastIndexOf("/"))
-		path = path.substring(0, path.lastIndexOf("/"))
 		path = path.substring(path.lastIndexOf("/")+1)
 		properties.Side = path.substring(path.indexOf("-")+1)
 		
@@ -133,7 +131,7 @@ dir.traverse {
 			properties.Subcategory = ""
 		}
 		properties.Set = path.substring(0, path.indexOf("-"))
-		properties.ImageFile = properties.Set +"-"+ properties.Side +"/large/"+ it.name		
+		properties.ImageFile = properties.Set +"-"+ properties.Side +"/"+ it.name		
 		properties.id = removeNonAscii(properties.Name)+"_"+removeNonAscii(properties.Set)+"_"+removeNonAscii(properties.Side)
 
 		//allSets
@@ -161,5 +159,14 @@ builder (
 
 new File(basedir+"core_data.js").withWriter { out ->
 	out.println "var core_data = ${builder.toPrettyString()}"
+}
+
+builder = new groovy.json.JsonBuilder()
+builder (
+	rootData
+)
+
+new File(basedir+"swccg.json").withWriter { out ->
+	out.println builder.toPrettyString()
 }
 
