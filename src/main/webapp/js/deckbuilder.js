@@ -292,6 +292,7 @@ Cards.prototype.createCardNodes = function() {
 		
 		var img = $("<img />");
 		img.load(function() {
+			self.ctime = new Date().getTime();
 			totalCardsLoaded++;
 			$("#waitDialogText").html("Loading images ... "+totalCardsLoaded+" from "+totalCardsCreated);
 			if(totalCardsCreated<=totalCardsLoaded) {
@@ -342,6 +343,9 @@ Cards.prototype.createCardNodes = function() {
 	});
 	$('#main').append(mainDiv);
 	
+	self.ctime = new Date().getTime();
+	setTimeout("cards.imageLoadStalledChecked()", 3000);
+	
 	var div = $("<input />");
 	div.attr("type", "checkbox");
 	div.attr("name", "set_ALL");
@@ -387,6 +391,15 @@ Cards.prototype.createCardNodes = function() {
 		$("#categoryDiv").append(value.substring(0,3));
 		$("#categoryDiv").append(div);
 	});	
+};
+
+Cards.prototype.imageLoadStalledChecked = function() {
+	var ctime = new Date().getTime();
+	if(ctime > this.ctime+3000) {
+		$("#waitDialog").hide();
+	} else {
+		setTimeout("cards.imageLoadStalledChecked()", 3000);
+	}
 };
 
 Cards.prototype.getSelectedDecksAsString = function () {

@@ -64,7 +64,7 @@
 					<li>To remove a card from a deck do a middle-click or a shift-left-click</li>
 					<li>A deck must contain exactly 60 cards to be valid</li>
 					<li>
-					Cha = Character, Eff = Effect, Veh = Vehicle, Sta = Starship, Epi = Epic, Loc = Location, Dev = Device, Cre = Creature, Wea = Weapon, Int = Interrupt, Obj = Objective, Jed = Jedi Test, Adm = Admiral's Order, Def = Defensive Shield, Pod = Podracer
+					Cha = Character, Eff = Effect, Veh = Vehicle, Sta = Starship, Epi = Epic, Loc = Location, Dev = Device, Cre = Creature, Wea = Weapon, Int = Interrupt, Obj = Objective, Jed = Jedi Test, Adm = Admiral's Order, Def = Defensive Shield, Pod = Podracer, Und = Undefined
 					</li>
 				</ul>
 			</div>
