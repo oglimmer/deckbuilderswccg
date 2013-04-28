@@ -230,7 +230,7 @@ Cards.prototype.changeShow = function (changedElement) {
 	});
 }
 
-Cards.prototype.createSide = function (side) {
+Cards.prototype.createSide = function (side, afterLoaded) {
 	this.side = side;
 	if(side=='reset') {
 		$('#mainLinkReset').hide();
@@ -250,11 +250,13 @@ Cards.prototype.createSide = function (side) {
 		$("#waitDialogText").html("Loading images ... initializing");
 		$("#waitDialog").show();
 		// yield for 150ms to let the UI thread update
-		setTimeout("cards.createCardNodes()", 150);
+		setTimeout(function() {
+			cards.createCardNodes(afterLoaded);
+		}, 150);
 	}
 };
 
-Cards.prototype.createCardNodes = function() {
+Cards.prototype.createCardNodes = function(afterLoaded) {
 	var self = this;
 	$('#mainLinkLight').hide();
 	$('#mainLinkDark').hide();
@@ -390,7 +392,10 @@ Cards.prototype.createCardNodes = function() {
 		});
 		$("#categoryDiv").append(value.substring(0,3));
 		$("#categoryDiv").append(div);
-	});	
+	});
+	if(typeof(afterLoaded) !== 'undefined') {
+		afterLoaded();
+	}
 };
 
 Cards.prototype.imageLoadStalledChecked = function() {
@@ -440,6 +445,7 @@ Cards.inArray = function(objToSearch, array, index) {
 
 Cards.prototype.reverseUpdateSelectionModel = function(selectedCards) {
 	var self = this;
+	console.log(selectedCards)
 	$.each(selectedCards, function(ind, kvString) {
 		var kv = kvString.split("=");
 		var div = $("#"+kv[0])
@@ -522,10 +528,11 @@ User.prototype.loadDeck = function(deckId) {
 	$.ajax( "api.groovy" , {type: 'GET', dataType: 'json', data: {type:'load',deckId:deckId}, 
 		success: function(data, textStatus, jqXHR) {
 			if(textStatus=='success') {
-				cards.createSide(data.side);
-				cards.reverseUpdateSelectionModel(data.blocks.split(","));
-				cards.selectionChanged();
-				cards.currentDeckId = deckId
+				cards.createSide(data.side, function() {
+					cards.reverseUpdateSelectionModel(data.blocks.split(","));
+					cards.selectionChanged();
+					cards.currentDeckId = deckId;
+				});
 			}
 		}
 	});
