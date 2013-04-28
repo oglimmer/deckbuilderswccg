@@ -294,7 +294,7 @@ Cards.prototype.createCardNodes = function() {
 		img.load(function() {
 			self.ctime = new Date().getTime();
 			totalCardsLoaded++;
-			$("#waitDialogText").html("Loading images ... "+totalCardsLoaded+" from "+totalCardsCreated);
+			$("#waitDialogText").html("Loading images ... "+totalCardsLoaded+" of "+totalCardsCreated);
 			if(totalCardsCreated<=totalCardsLoaded) {
 				$("#waitDialog").hide();
 			}
