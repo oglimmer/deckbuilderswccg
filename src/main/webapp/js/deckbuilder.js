@@ -344,7 +344,7 @@ Cards.prototype.createCardNodes = function() {
 	$('#main').append(mainDiv);
 	
 	self.ctime = new Date().getTime();
-	setTimeout("cards.imageLoadStalledChecked()", 3000);
+	setTimeout("cards.imageLoadStalledChecked()", 1000);
 	
 	var div = $("<input />");
 	div.attr("type", "checkbox");
@@ -396,9 +396,10 @@ Cards.prototype.createCardNodes = function() {
 Cards.prototype.imageLoadStalledChecked = function() {
 	var ctime = new Date().getTime();
 	if(ctime > this.ctime+3000) {
-		$("#waitDialog").hide();
+		$("#waitDialogLoadingGif").hide();
+		$("#waitDialogText").html("Loading of images failed. Press discard and try to load/create the deck again.");
 	} else {
-		setTimeout("cards.imageLoadStalledChecked()", 3000);
+		setTimeout("cards.imageLoadStalledChecked()", 1000);
 	}
 };
 

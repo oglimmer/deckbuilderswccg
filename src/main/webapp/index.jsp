@@ -71,8 +71,13 @@
 		</div>
 	</div>
 	<div id="main"></div>
-	<div id="waitDialog"><div id="waitDialogText">Loading images ... initializing </div></div>
-</body>
+	<div id="waitDialog">
+		<div id="waitDialogFrame">
+			<div id="waitDialogText">Loading images ... initializing</div>
+			<br/>	
+			<img id="waitDialogLoadingGif" src="images/loading.gif" alt="" />
+		</div>
+	</div></body>
 </html>
 
 
