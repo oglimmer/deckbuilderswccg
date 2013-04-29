@@ -7,6 +7,7 @@
 		<script type="text/javascript" src="js/jquery-ui-1.10.0.custom.min.js"></script>
 		<script type="text/javascript" src="js/core_data.js"></script>
 		<script type="text/javascript" src="js/deckbuilder.js"></script>
+		<script type="text/javascript" src="js/jquery.lazyload.min.js"></script>
 		<link rel="stylesheet" type="text/css" href="css/deckbuilder.css" />
 		<link rel="stylesheet" type="text/css" href="css/ui-lightness/jquery-ui-1.10.0.custom.css" />
 	</head>
@@ -70,14 +71,8 @@
 			</div>
 		</div>
 	</div>
-	<div id="main"></div>
-	<div id="waitDialog">
-		<div id="waitDialogFrame">
-			<div id="waitDialogText">Loading images ... initializing</div>
-			<br/>	
-			<img id="waitDialogLoadingGif" src="images/loading.gif" alt="" />
-		</div>
-	</div></body>
+	<div id="main"></div>	
+</body>
 </html>
 
 

@@ -230,7 +230,7 @@ Cards.prototype.changeShow = function (changedElement) {
 	});
 }
 
-Cards.prototype.createSide = function (side, afterLoaded) {
+Cards.prototype.createSide = function (side) {
 	this.side = side;
 	if(side=='reset') {
 		$('#mainLinkReset').hide();
@@ -247,16 +247,11 @@ Cards.prototype.createSide = function (side, afterLoaded) {
 			$('#mainLinkSaveAs').hide();
 		}
 	} else {
-		$("#waitDialogText").html("Loading images ... initializing");
-		$("#waitDialog").show();
-		// yield for 150ms to let the UI thread update
-		setTimeout(function() {
-			cards.createCardNodes(afterLoaded);
-		}, 150);
+		cards.createCardNodes()
 	}
 };
 
-Cards.prototype.createCardNodes = function(afterLoaded) {
+Cards.prototype.createCardNodes = function() {
 	var self = this;
 	$('#mainLinkLight').hide();
 	$('#mainLinkDark').hide();
@@ -273,9 +268,9 @@ Cards.prototype.createCardNodes = function(afterLoaded) {
 	// create all Card-Boxs
 	var mainDiv = $("<div />");
 	var lastCategory = null;
-	var totalCardsCreated = 0;
-	var totalCardsLoaded = 0;
+	var count = 0;
 	$.each(core_data.main[this.side], function(index, value) {
+		count++;
 		if(lastCategory != value.Category) {
 			lastCategory = value.Category;
 			$('#main').append(mainDiv);
@@ -293,17 +288,14 @@ Cards.prototype.createCardNodes = function(afterLoaded) {
 		staticDiv.append(innerDiv);		
 		
 		var img = $("<img />");
-		img.load(function() {
-			self.ctime = new Date().getTime();
-			totalCardsLoaded++;
-			$("#waitDialogText").html("Loading images ... "+totalCardsLoaded+" of "+totalCardsCreated);
-			if(totalCardsCreated<=totalCardsLoaded) {
-				$("#waitDialog").hide();
-			}
-		});
-		img.attr('src',user.path+'/'+value.ImageFile);
+		if(count > 40) {
+			img.attr('class',"lazy");
+			img.attr('src',"images/blank.png");
+			img.attr('data-original',user.path+'/'+value.ImageFile);			
+		} else {
+			img.attr('src',user.path+'/'+value.ImageFile);			
+		}
 		innerDiv.append(img);
-		totalCardsCreated++;
 		
 		var counterSpan = $("<span />");
 		counterSpan.attr('id','cardInfo'+value.id);
@@ -345,9 +337,8 @@ Cards.prototype.createCardNodes = function(afterLoaded) {
 	});
 	$('#main').append(mainDiv);
 	
-	self.ctime = new Date().getTime();
-	setTimeout("cards.imageLoadStalledChecked()", 1000);
-	
+	$("img.lazy").lazyload();
+		
 	var div = $("<input />");
 	div.attr("type", "checkbox");
 	div.attr("name", "set_ALL");
@@ -393,19 +384,6 @@ Cards.prototype.createCardNodes = function(afterLoaded) {
 		$("#categoryDiv").append(value.substring(0,3));
 		$("#categoryDiv").append(div);
 	});
-	if(typeof(afterLoaded) !== 'undefined') {
-		afterLoaded();
-	}
-};
-
-Cards.prototype.imageLoadStalledChecked = function() {
-	var ctime = new Date().getTime();
-	if(ctime > this.ctime+3000) {
-		$("#waitDialogLoadingGif").hide();
-		$("#waitDialogText").html("Loading of images failed. Press discard and try to load/create the deck again.");
-	} else {
-		setTimeout("cards.imageLoadStalledChecked()", 1000);
-	}
 };
 
 Cards.prototype.getSelectedDecksAsString = function () {
@@ -528,11 +506,10 @@ User.prototype.loadDeck = function(deckId) {
 	$.ajax( "api.groovy" , {type: 'GET', dataType: 'json', data: {type:'load',deckId:deckId}, 
 		success: function(data, textStatus, jqXHR) {
 			if(textStatus=='success') {
-				cards.createSide(data.side, function() {
-					cards.reverseUpdateSelectionModel(data.blocks.split(","));
-					cards.selectionChanged();
-					cards.currentDeckId = deckId;
-				});
+				cards.createSide(data.side);
+				cards.reverseUpdateSelectionModel(data.blocks.split(","));
+				cards.selectionChanged();
+				cards.currentDeckId = deckId;
 			}
 		}
 	});
