@@ -228,6 +228,7 @@ Cards.prototype.changeShow = function (changedElement) {
 			card.nodeRef.hide();
 		};
 	});
+	updateLazyLoadingHook();
 }
 
 Cards.prototype.createSide = function (side) {
@@ -337,7 +338,7 @@ Cards.prototype.createCardNodes = function() {
 	});
 	$('#main').append(mainDiv);
 	
-	$("img.lazy").lazyload();
+	$("img.lazy").lazyload();	
 		
 	var div = $("<input />");
 	div.attr("type", "checkbox");
