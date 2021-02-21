@@ -22,10 +22,10 @@ import javax.activation.*
 //org.apache.log4j.xml.DOMConfigurator.configure("log4j.xml");
 
 def getRESTClient(){
-  return new RESTClient(SwlcgProperties.INSTANCE.getDbProtocol() + "://" + SwlcgProperties.INSTANCE.getDbHost() + ":" + SwlcgProperties.INSTANCE.getDbPort() + "/")
+  return new RESTClient(SwccgProperties.INSTANCE.getDbProtocol() + "://" + SwccgProperties.INSTANCE.getDbHost() + ":" + SwccgProperties.INSTANCE.getDbPort() + "/")
 }
 def getDBName() {
-	return SwlcgProperties.INSTANCE.getDbSchema() + "/"
+	return SwccgProperties.INSTANCE.getDbSchema() + "/"
 }
 def safeSession() {
 	if (!session) {
@@ -123,9 +123,9 @@ if (params.type=='recoverPassReq') {
 		System.out.println("Generated pass-recovery url=api.groovy?type=recoverPass&email="+params.email+"&token="+ passRecoveryToken);
 		
 		Properties mprops = new Properties();
-		mprops.setProperty("mail.transport.protocol", SwlcgProperties.INSTANCE.getMailProtocol());
-		mprops.setProperty("mail.host", SwlcgProperties.INSTANCE.getMailHost());
-		mprops.setProperty("mail.smtp.port", SwlcgProperties.INSTANCE.getMailPort());
+		mprops.setProperty("mail.transport.protocol", SwccgProperties.INSTANCE.getMailProtocol());
+		mprops.setProperty("mail.host", SwccgProperties.INSTANCE.getMailHost());
+		mprops.setProperty("mail.smtp.port", SwccgProperties.INSTANCE.getMailPort());
 		Session lSession = Session.getDefaultInstance(mprops,null);
 		MimeMessage msg = new MimeMessage(lSession);	
 		msg.setRecipients(MimeMessage.RecipientType.TO, new InternetAddress(params.email));
